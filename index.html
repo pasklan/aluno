@@ -1,0 +1,155 @@
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Controle de Alunos</title>
+    <script src="js/jquery-3.3.1.min.js"></script>
+
+</head>
+<body>
+    <button id="addAluno" name="addAluno" onclick="mostrarForm()">
+        Adicionar Novo Aluno
+    </button>
+    <div id="add">
+        <h2 id="titulo">Cadastro de Aluno:</h2>
+        <form action="" method="post" id="formulario">
+<!-- ****************** ALTERAÇÃO PARA AULA 14/03 ************************* -->
+            <input type="hidden" name="mat" id="mat">
+
+            <label for="nome">Nome:</label><br>
+            <input type="text" name="nome" id="nome" value=""><br>
+            <label for="datanascimento">Data de Nascimento:</label><br>
+            <input type="text" name="datanascimento" id="datanascimento" value=""><br>
+            <label for="cpf">CPF:</label><br>
+            <input type="text" name="cpf" id="cpf" value=""><br>
+            <label for="endereco">Endereço:</label><br>
+            <input type="text" name="endereco" id="endereco" value=""><br>
+            <label for="telefone">Telefone:</label><br>
+            <input type="text" name="telefone" id="telefone" value=""><br>
+            <label for="sexo">Sexo:</label><br>
+            <input type="radio" name="sexo" id="masc" value="1" checked>Homem <br>
+            <input type="radio" name="sexo" id="fem" value="2">Mulher <br>
+            <button type="submit" value="Salvar" id="salvar" name="salvar" class='salvar' >
+                Salvar
+            </button>
+        </form>
+    </div>
+    <div id="tbl">
+        <table id="lista" width=100%>
+            <thead>
+                <tr>
+                    <th>Nome:</th>        
+                    <th>Data Nascimento:</th>        
+                    <th>CPF</th>        
+                    <th>Telefone</th>        
+                    <th>Endereço:</th>        
+                    <th>Sexo:</th>
+                    <th>Operação </th>        
+                </tr>
+            </thead>
+            <tbody></tbody>                
+        </table>
+    </div>
+</body>
+</html>
+
+<script type="text/javascript">
+   
+   //executa ao clicar no botao EDITAR
+    $(document).on('click','#btnAlterar', function(){
+        mostrarForm();
+//****************** ALTERAÇÃO PARA AULA 14/03 *************************//
+        $("#mat").val( $(this).closest('tr').data('id') );
+
+        $("#nome").val( $(this).closest('tr').find('td[data-nome]').data('nome') );
+        $("#datanascimento").val( $(this).closest('tr').find('td[data-dtnasc]').data('dtnasc') );
+        $("#cpf").val( $(this).closest('tr').find('td[data-cpf]').data('cpf') );
+        $("#endereco").val( $(this).closest('tr').find('td[data-end]').data('end') );
+        $("#telefone").val( $(this).closest('tr').find('td[data-tel]').data('tel') );
+        var s = $(this).closest('tr').find('td[data-sexo]').data('sexo');       
+        if (s == 1) {
+            $("#masc").prop('checked',true);
+            $("#fem").prop('checked',false);
+            
+        }else if(s == 2){
+            $("#fem").prop('checked',true);
+            $("#masc").prop('checked',false);
+          
+        }
+//****************** ALTERAÇÃO PARA AULA 14/03 *************************//
+        $("#salvar").val("Alterar");
+        $("#salvar").html("Alterar");
+        
+    });
+
+    //ao carregar a página, o formuário por padrão, ficará escondido
+    $(document).ready(function(){
+        $("#add").hide();
+        //inicio requisição que lista os alunos
+        atualizaTabela();
+
+    });
+
+    //funcao que mostra o formulário
+    function mostrarForm() {
+        $("#add").show();
+//****************** ALTERAÇÃO PARA AULA 14/03 *************************//        
+        limparForm(); //limpa os campos do formulario
+        $("#salvar").val("Salvar"); //muda o value do button para Salvar
+        $("#salvar").html("Salvar"); //muda o texto HTML do button para Salvar
+    }
+
+    //evento que é disparado ao se clicar no botão SALVAR do formulário
+    $("#formulario").submit(function(){
+//****************** ALTERAÇÃO PARA AULA 14/03 *************************//
+        //verifica se vai ser Inclusão ou Alteração capturando o VALUE do BUTTON
+        var op = $("#salvar").val();
+        if (op == "Salvar") {
+            op = 2;
+        } else if (op == "Alterar"){
+            op = 3;
+        }
+//****************** ALTERAÇÃO PARA AULA 14/03 *************************//
+
+        //captura os valores dos campos do formulário e atribui às variáveis
+        var dados = $(this).serialize();
+             $.ajax({
+                 url:"processar.php",
+                 data: dados + "&operacao=" + op, //****************** ALTERAÇÃO PARA AULA 14/03 *************************//
+                 type: "POST",
+                 dataType: "html"
+             }).done(function(resposta){
+                //Apos receber a confirmação do INSERT do arquivo processar
+                 atualizaTabela();
+                 limparForm();
+                 
+             }).fail(function(js, textoStatus){
+                 console.log("Deu erro: " + textoStatus);
+             })
+            return false;
+        });
+
+        //Atualiza os dados da tabela no Index
+        function atualizaTabela() {
+            $.ajax({
+            url:"processar.php",
+            type: "post",
+            data: "operacao=1",
+            dataType: "html"
+            }).done(function(resposta){
+                $("tbody").html(resposta);
+            }).fail(function(js, textoStatus){
+                console.log("Deu erro: " + textoStatus);
+            })
+        }
+        //Apagar os valores dos campos do formulario
+        function limparForm() {
+            $("#formulario").each(function(){
+                this.reset();
+            });
+        }
+
+       
+
+</script>
